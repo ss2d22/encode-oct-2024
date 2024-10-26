@@ -1,7 +1,7 @@
 #![no_std]
 use soroban_sdk::{
     contract, contractimpl, contracttype, contracterror,
-    Address, BytesN, Env, Symbol, Vec,
+    Address, BytesN,Bytes, Env, Symbol,symbol_short, Vec,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -9,7 +9,7 @@ use soroban_sdk::{
 pub struct Job {
     pub id: BytesN<32>,
     pub client: Address,
-    pub freelancer: Option<Address>,
+    pub freelancer: Address,
     pub title: Symbol,
     pub description: Symbol,
     pub total_amount: u32,
@@ -17,9 +17,12 @@ pub struct Job {
     pub status: JobStatus,
     pub created_at: u64,
     pub domain: Symbol,
-    pub dispute_id: Option<BytesN<32>>,
+    pub dispute_id: BytesN<32>,
     pub deadline: u64,
+    pub has_freelancer: bool,
+    pub has_dispute: bool,
 }
+
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[contracttype]
@@ -39,8 +42,10 @@ pub struct Milestone {
     pub description: Symbol,
     pub status: MilestoneStatus,
     pub deadline: u64,
-    pub submission: Option<Symbol>,
+    pub submission: Symbol,
+    pub has_submission: bool,
 }
+
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[contracttype]
@@ -114,7 +119,8 @@ pub struct UserProfile {
     pub reviews: Vec<Review>,
     pub skills: Vec<Symbol>,
     pub is_arbitrator: bool,
-    pub arbitrator_stats: Option<ArbitratorStats>,
+    pub arbitrator_stats: ArbitratorStats,
+    pub has_arbitrator_stats: bool,
     pub joined_date: u64,
 }
 
@@ -172,10 +178,10 @@ pub enum DataKey {
     ArbitratorList,
     Config,
 }
-
-const MINIMUM_STAKE: u32 = 1000;  // Minimum XLM stake for arbitrators
-const PLATFORM_FEE: u32 = 500;    // 5% platform fee (basis points)
-const MIN_REPUTATION: u32 = 50;    // Minimum reputation to become arbitrator
+// commented out for future features/ stuff i still didn't add
+// const MINIMUM_STAKE: u32 = 100;  // Minimum XLM stake for arbitrators
+// const PLATFORM_FEE: u32 = 500;    // 5% platform fee (basis points)
+// const MIN_REPUTATION: u32 = 50;    // Minimum reputation to become arbitrator
 const DISPUTE_TIMEOUT: u64 = 604800; // 7 days in seconds
 
 #[contract]
@@ -206,12 +212,15 @@ impl DecentralWork {
 
         // Generate unique job ID
         let job_id = Self::generate_id(&env);
+        let empty_bytes = BytesN::from_array(&env, &[0; 32]);
 
         // Create job
         let job = Job {
             id: job_id.clone(),
             client: client.clone(),
-            freelancer: None,
+           // freelancer: env.current_contract_address(),
+            //use same for now for testing for initial
+            freelancer: client.clone(),
             title,
             description,
             total_amount,
@@ -219,8 +228,10 @@ impl DecentralWork {
             status: JobStatus::Open,
             created_at: env.ledger().timestamp(),
             domain,
-            dispute_id: None,
+            dispute_id: empty_bytes,
             deadline,
+            has_freelancer: false,
+            has_dispute: false,
         };
 
         // Store job
@@ -240,9 +251,10 @@ impl DecentralWork {
 
         // Emit event
         env.events().publish(
-            (Symbol::short("job_created"), job_id.clone()),
+            (symbol_short!("job_new"), job_id.clone()),
             job
         );
+
 
         Ok(job_id)
     }
@@ -267,7 +279,8 @@ impl DecentralWork {
         }
 
         // Update job
-        job.freelancer = Some(freelancer.clone());
+        job.freelancer = freelancer.clone();
+        job.has_freelancer = true;
         job.status = JobStatus::InProgress;
 
         // Store updated job
@@ -276,7 +289,7 @@ impl DecentralWork {
 
         // Emit event
         env.events().publish(
-            (Symbol::short("job_accepted"), job_id),
+            (symbol_short!("accepted"), job_id),
             (freelancer, job)
         );
 
@@ -299,33 +312,37 @@ impl DecentralWork {
             .get(&DataKey::Job(job_id.clone()))
             .ok_or(Error::JobNotFound)?;
 
-        // Validate freelancer
-        if job.freelancer != Some(freelancer.clone()) {
+        if !job.has_freelancer || job.freelancer != freelancer {
             return Err(Error::Unauthorized);
         }
 
-        // Find and update milestone
-        let mut milestone_found = false;
-        for milestone in job.milestones.iter_mut() {
+        // Convert to vec to modify
+        let mut milestones = job.milestones.clone();
+        let mut found = false;
+        let n = milestones.len();
+
+        for i in 0..n {
+            let mut milestone = milestones.get(i).unwrap();
             if milestone.id == milestone_id {
                 milestone.status = MilestoneStatus::UnderReview;
-                milestone.submission = Some(submission.clone());
-                milestone_found = true;
+                milestone.submission = submission.clone();
+                milestone.has_submission = true;
+                milestones.set(i, milestone);
+                found = true;
                 break;
             }
         }
 
-        if !milestone_found {
+        if !found {
             return Err(Error::JobNotFound);
         }
 
-        // Store updated job
+        job.milestones = milestones;
         env.storage().instance().set(&DataKey::Job(job_id.clone()), &job);
         env.storage().instance().extend_ttl(100, 100);
 
-        // Emit event
         env.events().publish(
-            (Symbol::short("milestone_submitted"), milestone_id),
+            (symbol_short!("m_submit"), milestone_id),
             (job_id, submission)
         );
 
@@ -347,44 +364,45 @@ impl DecentralWork {
             .get(&DataKey::Job(job_id.clone()))
             .ok_or(Error::JobNotFound)?;
 
-        // Validate client
         if job.client != client {
             return Err(Error::Unauthorized);
         }
 
-        // Find and update milestone
+        let mut milestones = job.milestones.clone();
         let mut milestone_amount = 0;
         let mut all_completed = true;
-        for milestone in job.milestones.iter_mut() {
+        let n = milestones.len();
+
+        for i in 0..n {
+            let milestone = milestones.get(i).unwrap();
+            // Check if this is the milestone we're approving
             if milestone.id == milestone_id {
                 if milestone.status != MilestoneStatus::UnderReview {
                     return Err(Error::InvalidState);
                 }
-                milestone.status = MilestoneStatus::Completed;
-                milestone_amount = milestone.amount;
+                let mut updated_milestone = milestone.clone();
+                updated_milestone.status = MilestoneStatus::Completed;
+                milestone_amount = updated_milestone.amount;
+                milestones.set(i, updated_milestone);
             }
-            if milestone.status != MilestoneStatus::Completed {
+            // Check completion status
+            let status = milestones.get(i).unwrap().status;
+            if status != MilestoneStatus::Completed {
                 all_completed = false;
             }
         }
 
-        // Release payment
-        if milestone_amount > 0 {
-            //moneygram or pay to wallet then moneygram here pls no time in train
-        }
+        job.milestones = milestones;
 
-        // Update job status if all milestones completed
         if all_completed {
             job.status = JobStatus::Completed;
         }
 
-        // Store updated job
         env.storage().instance().set(&DataKey::Job(job_id.clone()), &job);
         env.storage().instance().extend_ttl(100, 100);
 
-        // Emit event
         env.events().publish(
-            (Symbol::short("milestone_approved"), milestone_id),
+            (symbol_short!("m_done"), milestone_id),
             (job_id, milestone_amount)
         );
 
@@ -409,12 +427,12 @@ impl DecentralWork {
             .ok_or(Error::JobNotFound)?;
 
         // Validate initiator is involved in job
-        if initiator != job.client && Some(initiator.clone()) != job.freelancer {
+        if initiator != job.client && (!job.has_freelancer || initiator != job.freelancer) {
             return Err(Error::Unauthorized);
         }
 
         // Ensure no existing dispute
-        if job.dispute_id.is_some() {
+        if job.has_dispute {
             return Err(Error::DisputeAlreadyExists);
         }
 
@@ -425,7 +443,10 @@ impl DecentralWork {
             job_id: job_id.clone(),
             initiator: initiator.clone(),
             respondent: if initiator == job.client {
-                job.freelancer.clone().unwrap()
+                if !job.has_freelancer {
+                    return Err(Error::InvalidState);
+                }
+                job.freelancer.clone()
             } else {
                 job.client.clone()
             },
@@ -440,7 +461,8 @@ impl DecentralWork {
 
         // Update job status
         job.status = JobStatus::UnderDispute;
-        job.dispute_id = Some(dispute_id.clone());
+        job.dispute_id = dispute_id.clone();
+        job.has_dispute = true;
 
         // Store dispute and updated job
         env.storage().instance().set(&DataKey::Dispute(dispute_id.clone()), &dispute);
@@ -449,7 +471,7 @@ impl DecentralWork {
 
         // Emit event
         env.events().publish(
-            (Symbol::short("dispute_created"), dispute_id.clone()),
+            (symbol_short!("dispute"), dispute_id.clone()),
             dispute
         );
 
@@ -471,14 +493,23 @@ impl DecentralWork {
         }
 
         // Create new profile
+        let empty_stats = ArbitratorStats {
+            cases_resolved: 0,
+            successful_resolutions: 0,
+            avg_resolution_time: 0,
+            stake_amount: 0,
+            domains: Vec::new(&env),
+        };
+
         let profile = UserProfile {
             address: address.clone(),
-            reputation_score: 100, // Starting reputation
+            reputation_score: 100,
             completed_jobs: 0,
             reviews: Vec::new(&env),
             skills: Vec::new(&env),
             is_arbitrator: false,
-            arbitrator_stats: None,
+            arbitrator_stats: empty_stats,
+            has_arbitrator_stats: false,
             joined_date: env.ledger().timestamp(),
         };
 
@@ -488,7 +519,7 @@ impl DecentralWork {
 
         // Emit event
         env.events().publish(
-            (Symbol::short("user_registered"), address.clone()),
+            (symbol_short!("user_new"), address.clone()),
             profile
         );
 
@@ -500,15 +531,24 @@ impl DecentralWork {
     /// Generate a unique ID using env data
     fn generate_id(env: &Env) -> BytesN<32> {
         let mut seed = [0u8; 32];
-        seed[0..8].copy_from_slice(&env.ledger().timestamp().to_be_bytes());
-        seed[8..16].copy_from_slice(&env.ledger().sequence().to_be_bytes());
-        let network_id = env.ledger().network_id().to_array();
-        seed[16..32].copy_from_slice(&network_id[0..16]);
+        let timestamp = env.ledger().timestamp();
+        let sequence = env.ledger().sequence();
 
-        let hash = env.crypto().sha256(&seed);
+        // Convert timestamp and sequence to bytes and copy to seed
+        seed[0..8].copy_from_slice(&timestamp.to_be_bytes());
+        seed[8..16].copy_from_slice(&sequence.to_be_bytes());
+
+        // Get network ID and copy remaining bytes
+        let network_id = env.ledger().network_id();
+        seed[16..32].copy_from_slice(&network_id.to_array()[0..16]);
+
+        // Convert seed to Soroban Bytes
+        let seed_bytes = Bytes::from_array(env, &seed);
+
+        // Hash and convert to BytesN
+        let hash = env.crypto().sha256(&seed_bytes);
         BytesN::from_array(env, &hash.to_array())
     }
 }
 
-#[cfg(test)]
 mod test;
