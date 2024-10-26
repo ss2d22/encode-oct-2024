@@ -9,6 +9,7 @@ doctest = false
 
 [dependencies]
 soroban-sdk = { workspace = true }
+sha3 = "0.10.8"
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }

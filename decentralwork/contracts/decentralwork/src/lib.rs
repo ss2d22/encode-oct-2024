@@ -1,28 +1,62 @@
 #![no_std]
-use soroban_sdk::{
-    contract, contractimpl, contracttype, contracterror,
-    Address, BytesN, Bytes, Env, Symbol, symbol_short, Vec,
-};
+
+mod token;
+
+use soroban_sdk::{contract, contractimpl, contracttype, contracterror, Address, BytesN, Bytes, Env, Symbol, symbol_short, Vec, String};
+use soroban_sdk::xdr::String32;
+use crate::JobStatus::Open;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[contracttype]
 pub struct ServiceListing {
     pub id: BytesN<32>,
     pub freelancer: Address,
-    pub title: Symbol,
-    pub price: u32,
-    pub weekly_limit: u32,
-    pub active_jobs: u32,
+    pub title: Symbol, // Valid characters are a-zA-Z0-9_ and maximum length is 32 characters.
+    pub price: u32, // 32 bit unsigned integer
+    pub weekly_limit: u32, // weekly limit of simultaneous services a freelancer can do
+    pub active_jobs: u32, // currently active services of this type
+    pub contact: String,
 }
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[contracttype]
+pub struct Job {
+    pub id: BytesN<32>,
+    pub client: Address,
+    pub freelancer: Address,
+    pub title: Symbol,
+    pub description: Symbol,
+    pub total_amount: u32,
+    pub status: JobStatus,
+    pub created_at: u64,
+    pub domain: Symbol,
+    pub deadline: u64,
+    pub has_freelancer: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[contracttype]
+pub enum JobStatus {
+    Open,
+    InProgress,
+    Completed,
+    Cancelled
+}
+
+// TODO: pinata FTP image file URL
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 #[repr(u32)]
 pub enum Error {
     InvalidInput = 1,
-    Unauthorized = 2,
+    Unauthorized = 2, // Unauthorized is not used though
     LimitExceeded = 3,
+    NoSuchService = 4,
+    ServiceCapacityReached = 5,
+    InsufficientBalance = 6,
 }
+// we might need more error types? last time for Stellar there was like 13
 
 #[derive(Clone)]
 #[contracttype]
@@ -46,10 +80,12 @@ impl DecentralWork {
         title: Symbol,
         price: u32,
         weekly_limit: u32,
+        contact_details: String,
     ) -> Result<BytesN<32>, Error> {
         freelancer.require_auth();
 
-        if price == 0 || weekly_limit == 0 {
+        if price <= 0 {
+            // || weekly_limit <= 0 {
             return Err(Error::InvalidInput);
         }
 
@@ -63,6 +99,7 @@ impl DecentralWork {
             price,
             weekly_limit,
             active_jobs: 0,
+            contact: contact_details,
         };
 
         env.storage().instance().set(&DataKey::Service(service_id.clone()), &service);
@@ -78,7 +115,6 @@ impl DecentralWork {
         env.storage().instance().set(&DataKey::ServiceList, &service_list);
 
         env.storage().instance().extend_ttl(100, 100);
-
 
         env.events().publish(
             (symbol_short!("created"), service_id.clone()),
@@ -110,33 +146,69 @@ impl DecentralWork {
         }
         services
     }
-}
+    pub fn order_service(
+        env: Env,
+        client: Address,
+        service_id: BytesN<32>,
+    ) -> Result<BytesN<32>, Error> {
+        client.require_auth();
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    use soroban_sdk::{testutils::{Address as _, Events}, vec, Env};
+        // verify that the service exists
+        let service = env.storage().instance().get(&DataKey::Service(service_id));
+        if let Some(mut service_listing) = service {
 
-    #[test]
-    fn test_create_service() {
-        let env = Env::default();
-        let contract_id = env.register_contract(None, DecentralWork);
-        let client = DecentralWorkClient::new(&env, &contract_id);
+            // verify that the service weekly capacity has not been reached
+            if service_listing.active_jobs < service_listing.weekly_limit {
+                service_listing.active_jobs += 1;
+                // Save the updated service back to storage
+                env.storage()
+                    .instance()
+                    .set(&DataKey::Service(clone(service_id)), service_listing);
 
-        let freelancer = Address::generate(&env);
-        let title = symbol_short!("test");
-
-        let result = client.try_create_service(
-            &freelancer,
-            &title,
-            &100,
-            &5,
-        );
-
-        assert!(result.is_ok());
-
-        // Verify event
-        let events = env.events().all();
-        assert_eq!(events.len(), 1);
+                Ok(())
+            } else {
+                Err(Error:ServiceCapacityReached);
+            }
+        } else {
+            // Return an error if the service does not exist
+            Err(Error::NoSuchService);
+        }
     }
+    pub fn update_service(
+        env: Env,
+        freelancer: Address,
+        service_id: BytesN<32>,
+        price: u32,
+        weekly_limit: u32,
+    ) -> Result<(), Error> {
+        let service = env.storage().instance().get(&DataKey::Service(service_id.clone()));
+        if let Some(mut service_listing) = service {
+            if service_listing.freelancer == freelancer {
+                // Access the `price` and `weekly_limit` fields
+                let current_price = service_listing.price;
+                let current_weekly_limit = service_listing.weekly_limit;
+                if (current_price != price){
+                    service_listing.price = price;
+                }
+                if (current_weekly_limit != weekly_limit){
+                    service_listing.weekly_limit = weekly_limit;
+                }
+
+                // Save the updated service back to storage
+                env.storage()
+                    .instance()
+                    .set(&DataKey::Service(service_id), service_listing);
+
+                Ok(())
+            }else{
+                Err(Error::Unauthorized)
+            }
+        } else {
+            // Return an error if the service does not exist
+            Err(Error::NoSuchService)
+        }
+    }
+
+
 }
+
