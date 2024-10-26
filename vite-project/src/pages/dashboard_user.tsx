@@ -1,6 +1,6 @@
 "use client"
 
-import { UserRound, Star, GitBranch, GitCommit } from "lucide-react"
+import { UserRound, Star, GitBranch, GitCommit, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -22,6 +22,7 @@ import { useState } from "react"
 import { Jobs, columns } from "@/components/columns"
 import { DataTable } from "@/components/datatable"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import AcceptJobDrawer from "@/components/acceptJobDrawer"
 
 export default function DashboardUser() {
     const [username, setUsername] = useState("Your Name");
@@ -160,6 +161,8 @@ export default function DashboardUser() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            <AcceptJobDrawer />
+            
           </div>
           <div className="space-y-10 w-full">
             <div className="ml-4">

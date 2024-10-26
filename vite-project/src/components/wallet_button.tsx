@@ -3,7 +3,7 @@ import {
   StellarWalletsKit,
   WalletNetwork,
   allowAllModules,
-  XBULL_ID,
+  FREIGHTER_ID,
   xBullModule,
   FreighterModule,
   AlbedoModule,
@@ -18,7 +18,7 @@ const WalletConnectButton = () => {
     const initializeKit = () => {
       setKit(new StellarWalletsKit({
         network: WalletNetwork.TESTNET,
-        selectedWalletId: XBULL_ID,
+        selectedWalletId: FREIGHTER_ID,
         modules: [
           new xBullModule(),
           new FreighterModule(),
