@@ -7,45 +7,6 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Card, CardContent } from "@/components/ui/card";
 
 function Home() {
-  const jobCategories = [
-    {
-      name: "Coming Soon",
-      url: "assets/black.jpg",
-    }, 
-    {
-      name: "Programming",
-      url: "assets/coding.jpg",
-    },
-    {
-      name: "Coming Soon",
-      url: "assets/black.jpg",
-    },
-    {
-      name: "Coming Soon",
-      url: "assets/black.jpg",
-    },
-    {
-      name: "Coming Soon",
-      url: "assets/black.jpg",
-    },
-  ];
-  const catCarousel = jobCategories.map((cat, id) => (
-    <CarouselItem key={id} className="md:basis-1/2 lg:basis-1/3">
-      <div className="p-1">
-        <Card className="overflow-hidden border-0  bg-transparent">
-          <CardContent className="p-0">
-            <div 
-              className="flex aspect-square items-end justify-end bg-cover bg-center p-6 opacity-[75%]"
-              style={{ backgroundImage: `url(${cat.url})` }}
-              aria-label={`Background image representing ${cat.url}`}
-            >
-              <p className="text-gray-50 text-2xl font-bold">{cat.name}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </CarouselItem>
-  ));
   return (
     <>
       <div
@@ -55,6 +16,9 @@ function Home() {
           backgroundPosition: "center", // Center the image
           height: "100vh", // Full height of the viewport
           width: "100vw", // Full width of the viewport
+          display: "flex",           // Add this
+          alignItems: "center",       // Center vertically
+          justifyContent: "center",
         }}
       >
         <div className="absolute w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -73,15 +37,6 @@ function Home() {
               </Button>
             </div>
           </div>
-          <div className="justify-center w-[90%] mt-10">
-            <Carousel>
-              <CarouselContent>
-                {catCarousel}
-              </CarouselContent>
-              <CarouselPrevious className="bg-transparent hover:bg-transparent"/>
-              <CarouselNext className="bg-transparent hover:bg-transparent"/>
-            </Carousel>
-            </div>
         </div>
       </div>
     </>
