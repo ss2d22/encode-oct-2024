@@ -6,9 +6,9 @@ import { ColumnDef } from "@tanstack/react-table"
 export type Jobs = {
         id: string
         jobName: string
-        employer: string
-        status: "pending" | "processing" | "success" | "failed"
-        daysRemaining: string
+        totalAmount: string
+        status: "Open" | "In Progress" | "UnderDispute" | "Completed" | "Cancelled"
+        deadline: string
 }
  
 export const columns: ColumnDef<Jobs>[] = [
@@ -17,15 +17,15 @@ export const columns: ColumnDef<Jobs>[] = [
         header: "Job Name",
     },
     {
-        accessorKey: "employer",
-        header: "Employer",
+        accessorKey: "totalAmount",
+        header: "Total Amount",
     },
     {
         accessorKey: "status",
         header: "Status",
     },
     {
-        accessorKey: "daysRemaining",
-        header: "Days Remaining",
+        accessorKey: "deadline",
+        header: "Deadline",
     }
 ]

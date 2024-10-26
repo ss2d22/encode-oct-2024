@@ -29,7 +29,7 @@ export function Navbar() {
               </a>
               <a
                 className="text-[#B9B9B9] mt-5 hover:text-[#F3F3F3] transition-colors"
-                href="/"
+                href="/explore"
               >
                 Explore
               </a>

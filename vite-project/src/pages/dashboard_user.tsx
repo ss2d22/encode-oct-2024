@@ -22,7 +22,6 @@ import { useState } from "react"
 import { Jobs, columns } from "@/components/columns"
 import { DataTable } from "@/components/datatable"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 
 export default function DashboardUser() {
     const [username, setUsername] = useState("Your Name");
@@ -40,23 +39,23 @@ export default function DashboardUser() {
         {
             id: "1",
             jobName: "UI building",
-            employer: "Stellar",
-            status: "pending",
-            daysRemaining: "10 days",
+            totalAmount: "10",
+            status: "Open",
+            deadline: "10 days",
         },
         {
             id: "2",
             jobName: "UX building",
-            employer: "Stellar",
-            status: "pending",
-            daysRemaining: "10 days",
+            totalAmount: "20",
+            status: "Open",
+            deadline: "10 days",
         },
         {
             id: "3",
             jobName: "Wallet Transfer Smart Contract",
-            employer: "Stellar",
-            status: "pending",
-            daysRemaining: "10 days",
+            totalAmount: "30",
+            status: "Open",
+            deadline: "10 days",
         },
     ]
 

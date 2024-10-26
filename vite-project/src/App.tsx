@@ -7,6 +7,7 @@ import { Navbar } from "./components/navbar";
 import { Footer } from "./components/footer";
 import Home from "./pages/home";
 import DashboardUser from "./pages/dashboard_user";
+import Explore from "./pages/explore";
 
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/dashboard-user" element={<DashboardUser />} />
+        <Route path="/explore" element={<Explore />} />
       </Routes>
       <Footer />
     </div>
