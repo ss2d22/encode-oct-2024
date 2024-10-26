@@ -9,24 +9,24 @@ import { Card, CardContent } from "@/components/ui/card";
 function Home() {
   const jobCategories = [
     {
-      name: "Graphic Design",
-      url: "assets/graphic-design.jpg",
+      name: "Coming Soon",
+      url: "assets/black.jpg",
     }, 
     {
       name: "Programming",
       url: "assets/coding.jpg",
     },
     {
-      name: "Writing/Translation",
-      url: "assets/writing.jpg",
+      name: "Coming Soon",
+      url: "assets/black.jpg",
     },
     {
-      name: "Media",
-      url: "assets/media.jpg",
+      name: "Coming Soon",
+      url: "assets/black.jpg",
     },
     {
-      name: "Tutoring",
-      url: "assets/teaching.jpg",
+      name: "Coming Soon",
+      url: "assets/black.jpg",
     },
   ];
   const catCarousel = jobCategories.map((cat, id) => (

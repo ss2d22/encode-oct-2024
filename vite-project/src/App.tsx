@@ -8,6 +8,7 @@ import { Footer } from "./components/footer";
 import Home from "./pages/home";
 import DashboardUser from "./pages/dashboard_user";
 import Explore from "./pages/explore";
+import Details from "./pages/detail";
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/dashboard-user" element={<DashboardUser />} />
         <Route path="/explore" element={<Explore />} />
+        <Route path="/details" element={<Details />} />
       </Routes>
       <Footer />
     </div>

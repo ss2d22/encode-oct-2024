@@ -61,11 +61,8 @@ function Explore() {
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            <div>
-                <GigCard title={"Web Development"} subtitle={"Hi"} sellerName={"Hi"} sellerImage = {"assets/coding.jpg"}
-  rating={10} 
-  reviewCount={10} 
-  startingPrice={10} />
+            <div className="mt-10">
+                <GigCard title={"Web Development"} description={"Hi"} freelancer={"Hi"} sellerImage = {"assets/coding.jpg"} total_amount={10} />
             </div>
         </div>
       </div>

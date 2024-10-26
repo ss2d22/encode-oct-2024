@@ -26,15 +26,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 export default function DashboardUser() {
     const [username, setUsername] = useState("Your Name");
     const [description, setDescription] = useState("Write your description");
+    const [projectName, setProjectName] = useState("Project Name");
+    const [skills, setSkills] = useState("Write your skills");
+    const [workTitle, setWorkTitle] = useState("Work Title");
+    const [company, setCompany] = useState("Company Name");
+    const [year, setYear] = useState("Duration");
+    const [workdes, setWorkDes] = useState("Write the job description");
     const [tempUsername, setTempUsername] = useState(username);
     const [tempDescription, setTempDescription] = useState(description);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialog2Open, setDialog2Open] = useState(false);
+    const [dialog3Open, setDialog3Open] = useState(false);
     const handleSaveChanges = () => {
         setUsername(tempUsername);
         setDescription(tempDescription);
         setDialogOpen(false);
     };
-    
+    const handleSavePP = () => {
+        setDialog2Open(false);
+    };
+    const handleSaveWE = () => {
+      setDialog3Open(false);
+    }
     const jobsList: Jobs[] = [
         {
             id: "1",
@@ -152,10 +165,23 @@ export default function DashboardUser() {
             <div className="ml-4">
               <p className="text-white max-w-md text-xl font-bold">
                 {username}
-              </p>     
-              <p className="text-white max-w-md">
+              </p>      
+              <p className="text-muted-foreground max-w-md text-md">
+                joined date
+              </p>      
+              <p className="text-zinc-400 max-w-md">
                 {description}
               </p>
+              <div className="flex justify-center items-center">
+                <Star className="text-yellow-400 w-5 h-5 fill-current" />
+                <span className="text-yellow-400 ml-1 font-bold">10.0</span>
+              </div>
+              <p className="text-gray-500 ml-1">10 Completed Jobs in total</p>
+              <div className="flex flex-row space-x-4 justify-center">
+                <Button className="bg-white text-black mt-2">View Reviews</Button>
+                <Button className="bg-white text-black mt-2">View Arbitrator Stats</Button>
+              </div>
+              
             </div>
             <div className="w-full ml-2">
               <DataTable columns={columns} data={jobsList} />
@@ -233,7 +259,7 @@ export default function DashboardUser() {
                   <div className="flex flex-col h-full p-6 bg-transparent overflow-auto">
                     <h2 className="text-2xl font-bold mb-4 text-white">Personal Projects</h2>
                     {personalProjects.map((project, index) => (
-                      <Card key={index} className="mb-4 bg-zinc-800">
+                      <Card key={index} className="mb-4 bg-tranparent">
                         <CardHeader>
                           <CardTitle className="text-white">{project.name}</CardTitle>
                         </CardHeader>
@@ -242,6 +268,46 @@ export default function DashboardUser() {
                         </CardContent>
                       </Card>
                     ))}
+                    <Dialog open={dialog2Open} onOpenChange={setDialog2Open}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" onClick={()=>setDialogOpen(true)}>Add New Personal Project</Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px] bg-zinc-900">
+                        <DialogHeader>
+                          <DialogTitle className="text-white">Add New Personal Projects</DialogTitle>
+                          <DialogDescription>
+                            Add New Personal Projects here. Click save when you're done.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="name" className="text-right text-white">
+                              Project Name
+                            </Label>
+                            <Input
+                              id="nameInput"
+                              className="col-span-3 text-white"
+                              value={projectName}
+                              onChange={e => setProjectName(e.target.value)}
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="username" className="text-right text-white">
+                              Skills Used
+                            </Label>
+                            <Input
+                              id="description"
+                              className="col-span-3 text-white"
+                              value={skills}
+                              onChange={e => setSkills(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button type="submit" onClick={handleSavePP}>Save changes</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </ResizablePanel>
                 <ResizableHandle />
@@ -259,6 +325,68 @@ export default function DashboardUser() {
                         </CardContent>
                       </Card>
                     ))}
+                    <Dialog open={dialog3Open} onOpenChange={setDialog3Open}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" onClick={()=>setDialogOpen(true)}>Add New Work Experience</Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px] bg-zinc-900">
+                        <DialogHeader>
+                          <DialogTitle className="text-white">Add New Work Experience</DialogTitle>
+                          <DialogDescription>
+                            Add New Work Experience here. Click save when you're done.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="name" className="text-right text-white">
+                              Job Title
+                            </Label>
+                            <Input
+                              id="nameInput"
+                              className="col-span-3 text-white"
+                              value={workTitle}
+                              onChange={e => setWorkTitle(e.target.value)}
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="username" className="text-right text-white">
+                              Company Name
+                            </Label>
+                            <Input
+                              id="description"
+                              className="col-span-3 text-white"
+                              value={company}
+                              onChange={e => setCompany(e.target.value)}
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="username" className="text-right text-white">
+                              Durations
+                            </Label>
+                            <Input
+                              id="description"
+                              className="col-span-3 text-white"
+                              value={year}
+                              onChange={e => setYear(e.target.value)}
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="username" className="text-right text-white">
+                              Job Description
+                            </Label>
+                            <Input
+                              id="description"
+                              className="col-span-3 text-white"
+                              value={workdes}
+                              onChange={e => setWorkDes(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button type="submit" onClick={handleSaveWE}>Save changes</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </ResizablePanel>
               </ResizablePanelGroup>
