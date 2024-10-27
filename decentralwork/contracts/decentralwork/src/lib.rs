@@ -80,7 +80,7 @@ impl DecentralWork {
         weekly_limit: u32,
         contact_details: String,
     ) -> Result<BytesN<32>, Error> {
-        freelancer.require_auth();
+        //freelancer.require_auth();
 
         if price == 0 || weekly_limit == 0 {
             return Err(Error::InvalidInput);
@@ -149,7 +149,7 @@ impl DecentralWork {
         client: Address,
         service_id: BytesN<32>,
     ) -> Result<(), Error> {
-        client.require_auth();
+        //client.require_auth();
 
         // Verify that the service exists
         let service: core::option::Option<ServiceListing> = env.storage().instance().get(&DataKey::Service(service_id.clone()));
@@ -181,7 +181,7 @@ impl DecentralWork {
         price: u32,
         weekly_limit: u32,
     ) -> Result<(), Error> {
-        freelancer.require_auth();
+        //freelancer.require_auth();
 
         let service: core::option::Option<ServiceListing> = env.storage().instance().get(&DataKey::Service(service_id.clone()));
         if let Some(mut service_listing) = service {
