@@ -1,27 +1,59 @@
 import { Heart, Star, UserRound } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface GigCardProps {
+  id: Buffer;
   title: string;
   description: string;
   freelancer: string;
-  sellerImage: string;
   total_amount: number;
 }
 
 export function GigCard({ 
+  id,
   title, 
   description, 
   freelancer, 
-  sellerImage,
   total_amount, 
 }: GigCardProps) {
+  const [image, setImage] = useState<string>("/placeholder.svg?height=200&width=300");
+  const freelancerName = freelancer.substring(0,5) + "..." + freelancer.substring(freelancer.length-5,freelancer.length)
+  const api = 'https://api.api-ninjas.com/v1/randomimage?category=technology'
+  async function getImage(): Promise<string> {
+    try {
+      const response = await fetch(api, {
+        method: "GET",
+        headers: { "X-Api-Key": "fWfBe3ObLa6nxrJnscvtzg==yJ6ztsbjpLyiwbmr", Accept: "image/jpg" },
+      });
+
+      const blob = await response.blob();
+      return URL.createObjectURL(blob); 
+    } catch (error) {
+      console.error("Error fetching image:", error);
+      return "/placeholder.svg?height=200&width=300"; 
+    }
+  }
+  useEffect(() => {
+    const fetchImage = async () => {
+      const imageUrl = await getImage();
+      setImage(imageUrl);
+    };
+    fetchImage();
+},[]);
+  const navigate = useNavigate();
+  const encodedData = encodeURIComponent(Buffer.from(id).toString('base64'));
+
+  const handleClick = () => {
+    navigate(`/details/${encodedData}`);
+  };
   return (
     <Card className="overflow-hidden bg-zinc-900 border-zinc-800">
       <CardHeader className="p-0">
         <div className="relative">
-          <a href='/details'>
-            <img src={sellerImage} alt={title} className="w-full h-48 object-cover" />
+          <a onClick={handleClick}>
+            <img src={image} alt={title} className="w-full h-48 object-cover" />
             <Heart className="absolute top-2 right-2 text-white hover:text-red-500 cursor-pointer" />
           </a>
         </div>
@@ -30,7 +62,7 @@ export function GigCard({
         <div className="flex items-center mb-2">
           <UserRound className="w-10 h-10 text-zinc-400 mr-3" />
           <div>
-            <p className="text-zinc-300 font-medium">{freelancer}</p>
+            <p className="text-zinc-300 font-medium">{freelancerName} </p>
             <p className="text-zinc-500 text-sm">Seller</p>
           </div>
         </div>
@@ -44,7 +76,7 @@ export function GigCard({
         </div>
         <div>
           <span className="text-zinc-400 text-sm">From </span>
-          <span className="text-white font-bold">£{total_amount}</span>
+          <span className="text-white font-bold">{total_amount}XLM</span>
         </div>
       </CardFooter>
     </Card>

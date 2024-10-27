@@ -32,7 +32,10 @@ const CreateJobButton: React.FC = () => {
   const [jobTitle, setJobTitle] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
-  const [deadline, setDeadline] = useState("");
+  const [deadline, setDeadline] = useState(0);
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const connectToWallet = async () => {
     const connected = await isConnected();
     if (!connected) {
@@ -45,20 +48,25 @@ const CreateJobButton: React.FC = () => {
     const res = await deWork.create_service({
       freelancer: walletAddress as string,
       title: jobTitle,
-      price: 100,
-      weekly_limit: totalAmount,
-      contact_details: "email",
+      price: totalAmount,
+      weekly_limit: deadline,
+      contact_details: email,
     });
     res.options.publicKey = walletAddress as string
-    res.simulate()
-    console.log(    res.options.publicKey, "lolol")
-
+    try{
+      res.simulate()
+      console.log(    res.options.publicKey, "lolol")
+      setDialogOpen(false)
+    }catch(e){
+      setError(true);
+    }
+    
   const rest = await res.signAndSend()
    console.log(rest)
   };
 
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="default">Add new job listing</Button>
       </DialogTrigger>
@@ -101,18 +109,34 @@ const CreateJobButton: React.FC = () => {
               id="totalAmount"
               className="col-span-3 bg-zinc-800 border-zinc-700 text-white"
               value={totalAmount}
+              type="number"
+              defaultValue="0" min="0"
               onChange={(e) => setTotalAmount(Number(e.target.value))}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="deadline" className="text-right">
-              Deadline
+              Deadline in weeks
             </Label>
             <Input
               id="deadline"
               className="col-span-3 bg-zinc-800 border-zinc-700 text-white"
               value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
+              type="number"
+              defaultValue="0" min="0"
+              onChange={(e) => setDeadline(Number(e.target.value))}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="email" className="text-right">
+              Email
+            </Label>
+            <Input
+              id="email"
+              className="col-span-3 bg-zinc-800 border-zinc-700 text-white"
+              value={email}
+              type="email"
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
         </div>
@@ -120,6 +144,7 @@ const CreateJobButton: React.FC = () => {
           <Button type="submit" onClick={postNewJob}>
             Post New Job
           </Button>
+          {error?<p>Please ensure data in put is correct</p>:null}
         </DialogFooter>
       </DialogContent>
     </Dialog>

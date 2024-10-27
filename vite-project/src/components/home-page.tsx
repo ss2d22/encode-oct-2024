@@ -61,7 +61,7 @@ export function HomePageComponent() {
             The decentralized marketplace for freelancers and clients. 
             Connect, collaborate, and create without boundaries.
           </p>
-          <Button size="lg">Get Started</Button>
+          <Button size="lg"><a className="text-white" href='/explore'>Get Started</a></Button>
         </main>
       </div>
     </div>

@@ -39,16 +39,12 @@ const App = () => {
             <Routes>
                 <Route path="/" element={<HomePageComponent/>}/>
                 <Route path="/dashboard" element={
-
                     <Dashboard/>
                }/>
                 <Route path="/explore" element={
                     <Explore/>
                 }/>
-                <Route path="/details" element={
-                    <Details/>
-
-                }/>
+                <Route path="/details/:id" element={<Details />} />
             </Routes>
             <Footer/>
         </div>

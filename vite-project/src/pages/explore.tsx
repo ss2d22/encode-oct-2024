@@ -21,11 +21,11 @@ const Explore = () => {
       try {
         const serviceListings = await deWork.get_services();
         const response = await serviceListings.signAndSend({ force: true });
-
         const resolvedServices = response.result.map((service) => ({
           id: Array.from(service.id)
             .map((b) => b.toString(16).padStart(2, "0"))
             .join(""),
+          serviceID: service.id,
           freelancer: service.freelancer,
           title: service.title,
           price: service.price,
@@ -85,6 +85,8 @@ const Explore = () => {
       window.removeEventListener("resize", resizeCanvas);
     };
   }, []);
+
+
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -146,11 +148,11 @@ const Explore = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
               <GigCard
+                id={service.serviceID}
                 key={service.id}
                 title={service.title}
                 description={`${service.active_jobs} active jobs. Contact: ${service.contact}`}
                 freelancer={service.freelancer}
-                sellerImage="/placeholder.svg?height=200&width=300"
                 total_amount={service.price}
               />
             ))}

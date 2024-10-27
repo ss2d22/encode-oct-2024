@@ -11,11 +11,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Star, GitCommit, GitBranch, Plus } from "lucide-react";
+import { useParams } from "react-router-dom";
+import deWork from "@/utils/DeWorkContractService";
 
 const Details = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -96,6 +99,7 @@ const Details = () => {
   ];
 
   return (
+    
     <div className="relative min-h-screen overflow-hidden bg-black text-white font-sans">
       <canvas
         ref={canvasRef}
@@ -111,14 +115,14 @@ const Details = () => {
           <div className="flex items-center mt-4 md:mt-0">
             <Star className="text-yellow-400 w-6 h-6 fill-current" />
             <span className="text-yellow-400 ml-1 font-bold text-2xl">
-              10.0
+              4.9
             </span>
-            <span className="text-blue-200 ml-2">(50 reviews)</span>
+            <span className="text-blue-200 ml-2">(123 reviews)</span>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="bg-purple-800 bg-opacity-20 backdrop-blur-md border-purple-500 border-opacity-30">
+        <div className="flex flex row">
+          <div className="flex flex-col space-y-6 w-[50%]">
+          <Card className="bg-purple-800 bg-opacity-20 backdrop-blur-md border-purple-500 border-opacity-30 w-[90%]">
             <CardHeader>
               <CardTitle className="text-purple-100">GitHub Stats</CardTitle>
             </CardHeader>
@@ -156,7 +160,7 @@ const Details = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-green-800 bg-opacity-20 backdrop-blur-md border-green-500 border-opacity-30">
+          <Card className="bg-green-800 bg-opacity-20 backdrop-blur-md border-green-500 border-opacity-30  w-[90%]">
             <CardHeader>
               <CardTitle className="text-green-100">
                 Personal Projects
@@ -180,7 +184,7 @@ const Details = () => {
           </Card>
         </div>
 
-        <Card className="bg-blue-800 bg-opacity-20 backdrop-blur-md border-blue-500 border-opacity-30">
+        <Card className="bg-blue-800 bg-opacity-20 backdrop-blur-md border-blue-500 border-opacity-30 w-[40%]">
           <CardHeader>
             <CardTitle className="text-blue-100">Work Experience</CardTitle>
           </CardHeader>
@@ -205,9 +209,8 @@ const Details = () => {
             </div>
           </CardContent>
         </Card>
-
-        <div className="flex justify-end">
-          <Card className="w-full md:w-1/2 lg:w-1/3 bg-orange-800 bg-opacity-20 backdrop-blur-md border-orange-500 border-opacity-30">
+        <div className="flex justify-end mx-12">
+          <Card className="w-full h-[50%] bg-orange-800 bg-opacity-20 backdrop-blur-md border-orange-500 border-opacity-30">
             <CardHeader>
               <CardTitle className="text-orange-100">Payment</CardTitle>
               <CardDescription className="text-orange-200">
@@ -235,6 +238,9 @@ const Details = () => {
             </CardFooter>
           </Card>
         </div>
+        </div>
+        
+        
 
         <Card className="bg-gray-800 bg-opacity-20 backdrop-blur-md border-gray-500 border-opacity-30">
           <CardHeader>
