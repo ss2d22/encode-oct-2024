@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,10 +14,53 @@ import { Star, GitCommit, GitBranch, Plus } from "lucide-react";
 import { useParams } from "react-router-dom";
 import deWork from "@/utils/DeWorkContractService";
 
-const Details = () => {
+export interface ServiceListing {
+  active_jobs: number;  // Change u32 to number
+  contact: string;
+  freelancer: string;
+  id: Buffer;
+  price: number;        // Change u32 to number
+  title: string;
+  weekly_limit: number; // Change u32 to number
+}
+
+const Details = () => {  
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { service_id } = useParams(); // Get service_id from URL parameters
+  console.log(service_id);
+
+  const [service, setService] = useState<ServiceListing>();
 
   useEffect(() => {
+    const fetchServiceDetails = async () => {
+      if (!service_id) {
+        console.error("Service ID is undefined");
+        return;
+      }
+      const matchedBytes = service_id.match(/.{1,2}/g);
+      if (!matchedBytes) {
+        console.error("Service ID format is invalid");
+        return;
+      }
+      // Convert hex string back to Uint8Array
+      console.log(Buffer.from(service_id,'hex'));
+      
+
+      try {
+        const response = await deWork.get_service({ service_id: Buffer.from(service_id,'hex') });
+        console.log("Service response:", response); 
+        if (response.result) {
+          setService(response.result); 
+          console.log(response.result);
+        } else {
+          console.error("No service details found");
+        }
+      } catch (error) {
+        console.error("Error fetching service details:", error);
+      }
+    };
+
+    fetchServiceDetails();
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -61,7 +104,7 @@ const Details = () => {
     return () => {
       window.removeEventListener("resize", resizeCanvas);
     };
-  }, []);
+  }, [service_id]);
 
   const githubStats = {
     stars: 120,
@@ -109,8 +152,8 @@ const Details = () => {
       <div className="relative z-10 flex flex-col p-4 space-y-8 max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white bg-opacity-10 backdrop-blur-md rounded-lg p-6">
           <div>
-            <h1 className="text-4xl font-bold text-blue-100">Project Title</h1>
-            <p className="text-xl text-blue-200 mt-2">Project Description</p>
+            <h1 className="text-4xl font-bold text-blue-100">test</h1>
+            <p className="text-xl text-blue-200 mt-2">Description of test</p>
           </div>
           <div className="flex items-center mt-4 md:mt-0">
             <Star className="text-yellow-400 w-6 h-6 fill-current" />

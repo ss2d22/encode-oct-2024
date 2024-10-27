@@ -43,10 +43,9 @@ export function GigCard({
     fetchImage();
 },[]);
   const navigate = useNavigate();
-  const encodedData = encodeURIComponent(Buffer.from(id).toString('base64'));
 
   const handleClick = () => {
-    navigate(`/details/${encodedData}`);
+    navigate(`/details/${id}`);
   };
   return (
     <Card className="overflow-hidden bg-zinc-900 border-zinc-800">

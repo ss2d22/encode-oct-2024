@@ -21,7 +21,11 @@ const Explore = () => {
       try {
         const serviceListings = await deWork.get_services();
         const response = await serviceListings.signAndSend({ force: true });
-        const resolvedServices = response.result.map((service) => ({
+        const resolvedServices = response.result.map((service) => {
+        // Log the service.id for debugging
+        console.log("Service ID:", service.id);
+
+        return {
           id: Array.from(service.id)
             .map((b) => b.toString(16).padStart(2, "0"))
             .join(""),
@@ -32,7 +36,8 @@ const Explore = () => {
           weekly_limit: service.weekly_limit,
           active_jobs: service.active_jobs,
           contact: service.contact,
-        }));
+        };
+      });
 
         setServices(resolvedServices);
       } catch (error) {
@@ -148,7 +153,7 @@ const Explore = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
               <GigCard
-                id={service.serviceID}
+                id={service.id}
                 key={service.id}
                 title={service.title}
                 description={`${service.active_jobs} active jobs. Contact: ${service.contact}`}
