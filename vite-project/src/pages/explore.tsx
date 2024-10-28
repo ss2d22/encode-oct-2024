@@ -14,6 +14,7 @@ import deWork from "@/utils/DeWorkContractService";
 
 const Explore = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [services, setServices] = useState<any[]>([]);
 
   useEffect(() => {
@@ -21,23 +22,26 @@ const Explore = () => {
       try {
         const serviceListings = await deWork.get_services();
         const response = await serviceListings.signAndSend({ force: true });
-        const resolvedServices = response.result.map((service) => {
-        // Log the service.id for debugging
-        console.log("Service ID:", service.id);
 
-        return {
-          id: Array.from(service.id)
+        const resolvedServices = response.result.map((service) => {
+          const idHex = Array.from(service.id)
             .map((b) => b.toString(16).padStart(2, "0"))
-            .join(""),
-          serviceID: service.id,
-          freelancer: service.freelancer,
-          title: service.title,
-          price: service.price,
-          weekly_limit: service.weekly_limit,
-          active_jobs: service.active_jobs,
-          contact: service.contact,
-        };
-      });
+            .join("");
+          console.log("Service ID:", idHex);
+          console.log("service", Array.from(service.id));
+          console.log(typeof service.id);
+          console.log("service id raw", service.id);
+
+          return {
+            id: idHex,
+            freelancer: service.freelancer,
+            title: service.title,
+            price: service.price,
+            weekly_limit: service.weekly_limit,
+            active_jobs: service.active_jobs,
+            contact: service.contact,
+          };
+        });
 
         setServices(resolvedServices);
       } catch (error) {
@@ -49,7 +53,6 @@ const Explore = () => {
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -90,8 +93,6 @@ const Explore = () => {
       window.removeEventListener("resize", resizeCanvas);
     };
   }, []);
-
-
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">

@@ -57,7 +57,7 @@ const CreateJobButton: React.FC = () => {
       res.simulate()
       console.log(    res.options.publicKey, "lolol")
       setDialogOpen(false)
-    }catch(e){
+    }catch{
       setError(true);
     }
     
